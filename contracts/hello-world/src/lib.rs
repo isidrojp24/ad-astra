@@ -30,7 +30,7 @@ pub struct Invoice {
     pub id: u64,
     pub worker: Address,
     pub client: Address,
-    pub amount_xlm: i128,       // in stroops (1 XLM = 10_000_000 stroops)
+    pub amount_usdc: i128,       // in stroops (1 XLM = 10_000_000 stroops)
     pub description: String,
     pub status: InvoiceStatus,
     pub created_at: u64,
