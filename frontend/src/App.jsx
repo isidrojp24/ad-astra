@@ -261,9 +261,11 @@ function App() {
     const signedTxXdr = signRes.signedTxXdr;
 
     setLogs(prev => [...prev, { text: "🚀 Submitting signed XDR to Soroban RPC node...", type: "stellar" }]);
-    const submitRes = await server.sendTransaction(
-      TransactionBuilder.fromXDR(signedTxXdr, passphrase)
-    );
+    // Use a duck-typed transaction object to prevent bundler/mangled-prototype method failures
+    const txWrapper = {
+      toXDR: () => signedTxXdr
+    };
+    const submitRes = await server.sendTransaction(txWrapper);
 
     if (submitRes.status === "ERROR") {
       throw new Error(`Transaction submission failed: ${JSON.stringify(submitRes.errorResultXdr)}`);
@@ -924,9 +926,15 @@ function App() {
           const signedTxXdr = signRes.signedTxXdr;
 
           setTransferLogs(prev => [...prev, { text: '🚀 Submitting signed transaction XDR payload to Stellar Horizon node...', type: 'stellar' }]);
-          const response = await server.submitTransaction(
-            TransactionBuilder.fromXDR(signedTxXdr, passphrase)
-          );
+          // Use a duck-typed transaction object and skip the checkMemoRequired validation check to bypass prototype issues
+          const txWrapper = {
+            toEnvelope: () => ({
+              toXDR: () => ({
+                toString: () => signedTxXdr
+              })
+            })
+          };
+          const response = await server.submitTransaction(txWrapper, { skipMemoRequiredCheck: true });
 
           setTransferLogs(prev => [...prev, { text: '🎉 LEDGER CONFIRMED! Sequence verified.', type: 'success' }]);
           setLastTxHash(response.hash);
@@ -1059,7 +1067,7 @@ function App() {
               <img src="/kwagee_logo.png" alt="Kwagee Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <h1 className="landing-title">Kwagee</h1>
-            <div className="landing-subtitle">On-Chain Self-Budgeting</div>
+            <div className="landing-subtitle">The Owl You Need On-Chain Self-Budgeting</div>
           </div>
           
           <p className="landing-description">
