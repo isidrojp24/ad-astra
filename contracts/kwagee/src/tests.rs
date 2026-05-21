@@ -146,3 +146,19 @@ fn test_withdraw_from_bucket() {
     let buckets = contract.get_buckets(&worker);
     assert_eq!(buckets.get(String::from_str(&env, "Savings")).unwrap(), 300_000_000);
 }
+
+#[test]
+fn test_get_client_invoices() {
+    let (env, worker, client) = setup();
+    let contract_id = env.register(Kwagee, ());
+    let contract = KwageeClient::new(&env, &contract_id);
+
+    // Create 2 invoices for same client
+    contract.create_invoice(&worker, &client, &50_000_000i128, &String::from_str(&env, "Invoice 1"));
+    contract.create_invoice(&worker, &client, &70_000_000i128, &String::from_str(&env, "Invoice 2"));
+
+    let client_invoices = contract.get_client_invoices(&client);
+    assert_eq!(client_invoices.len(), 2);
+    assert_eq!(client_invoices.get(0).unwrap(), 1);
+    assert_eq!(client_invoices.get(1).unwrap(), 2);
+}

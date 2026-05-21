@@ -172,6 +172,29 @@ impl Kwagee {
             .unwrap_or(Vec::new(&env))
     }
 
+    pub fn get_client_invoices(env: Env, client: Address) -> Vec<u64> {
+    let counter: u64 = env
+        .storage()
+        .instance()
+        .get(&DataKey::InvoiceCounter)
+        .unwrap_or(0u64);
+
+    let mut client_invoices: Vec<u64> = Vec::new(&env);
+
+    for id in 1..=counter {
+        if let Some(invoice) = env
+            .storage()
+            .persistent()
+            .get::<DataKey, Invoice>(&DataKey::Invoice(id))
+        {
+            if invoice.client == client {
+                client_invoices.push_back(id);
+            }
+        }
+    }
+
+    client_invoices
+}
     // ── Fixed Budget Functions ────────────────────────────────
 
     pub fn set_fixed_budget(env: Env, worker: Address, amount: i128) {
